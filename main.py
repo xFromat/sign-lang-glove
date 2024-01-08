@@ -1,14 +1,15 @@
 # main.py -- put your code here!
-from machine import Pin, ADC
 from time import sleep
 
 from res_sensors import Res_sensor
 
 # program
-in_pin = 14
-bend_sensor = Res_sensor(in_pin, "bend")
+# sampling frequency
+FS = 1 # Hz
+#
+in_pin = 9 # A3 pin
+bend_sensor = Res_sensor(in_pin, "bend") # 3.3V max, 13-bit ADC, bend sensor
 
 while True:
-    print(bend_sensor.get_value())
-    print(bend_sensor.get_volts())
-    sleep(1)
+    print("current voltage: ", bend_sensor.get_volts())    
+    sleep(1/FS)
