@@ -24,4 +24,6 @@ pymakr.conf
 
 # MacOS desktop metadata files
 .DS_Store
-results
+
+# results
+results/

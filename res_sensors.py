@@ -13,10 +13,10 @@ class Res_sensor:
     # 1.3V - 180 deg       |    >1V -> intentional touch 
     # 0.9V - 90 deg        |    
     # 0.5V - full          |
-    def __init__(self, pin_num: int, sensor_type: str, max_v: int=3.3, adc_width: int=8192):
+    def __init__(self, pin_num: int, sensor_type: str, max_v: float = 3.3, adc_width: int = 8192):
         self.port = ADC(Pin(pin_num))
         # attenuation allows to measure above reference voltage
-        if max_v > 3.3:
+        if max_v >= 3.3:
             self.port.atten(ADC.ATTN_11DB)
         self.max_v = max_v
         self.adc_width = adc_width
