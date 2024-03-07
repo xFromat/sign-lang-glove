@@ -1,113 +1,51 @@
+from typing import Any, Dict, List, Literal
 from res_sensors import Res_sensor
 from communication import Communication
-from pinyPBL import *
+import pinyPBL
+from config import Sensor_types
+from sensor import Sensor
+
+Sensor_names = Dict[Sensor_types, Dict[Literal["en", "pl"], str]]
 
 class Glove:
-    def __init__(self, sensor_names: list[str, str, str]):
+
+    SENSOR_TYPES = list(Sensor_types.__args__)
+    
+    # TODO: it should only store some kind of reference to the sensor, not the actual value
+    # make the object responsible for reading the value and maybe implementing some interface
+    # for the sensor
+
+    def __init__(self, sensors: Dict):
         # controller uart
         self.uart_control = Communication()
         
-        bend = sensor_names[0]
-        pressure = sensor_names[1]
+        
         # finger statuses/values
-        self.status = {
-            "fingers": {
-                "thumb": {
-                    bend: {
-                        "conf": Res_sensor(pinUgiecie1, bend),
-                        "value": -1
-                    },
-                    pressure: {
-                        "conf": Res_sensor(pinNacisk1, pressure),
-                        "value": -1
-                    }
-                },
-                "index": {
-                    bend: {
-                        "conf": Res_sensor(pinUgiecie2, bend),
-                        "value": -1
-                    },
-                    pressure: {
-                        "conf": Res_sensor(pinNacisk2, pressure),
-                        "value": -1
-                    }
-                },
-                "middle": {
-                    bend: {
-                        "conf": Res_sensor(pinUgiecie3, bend),
-                        "value": -1
-                    },
-                    pressure: {
-                        "conf": Res_sensor(pinNacisk3, pressure),
-                        "value": -1
-                    }
-                },
-                "ring": {
-                    bend: {
-                        "conf": Res_sensor(pinUgiecie4, bend),
-                        "value": -1
-                    },
-                    pressure: {
-                        "conf": Res_sensor(pinNacisk4, pressure),
-                        "value": -1
-                    }
-                },
-                "little": {
-                    bend: {
-                        "conf": Res_sensor(pinUgiecie5, bend),
-                        "value": -1
-                    },
-                    pressure: {
-                        "conf": Res_sensor(pinNacisk5, pressure),
-                        "value": -1
-                    }
-                }
-            },
-            "emg": {
-                    "conf": Res_sensor(pinEMG, "emg"),
-                    "value": -1
-            }
-        }
+        # TODO: make a dedicated class for elements of this
+        self._sensors = sensors
+
         
-    def get_readings(self):
-        for finger in self.status["fingers"].keys():
-            temp = self.status["fingers"][finger]
-            self.status["fingers"][finger]["bend"]["value"] = temp["bend"]["conf"].get_value()
-            self.status["fingers"][finger]["pressure"]["value"] = temp["pressure"]["conf"].get_value()
+    def read(self, function):
+        def read_wrapper(order: set) -> Dict:
+            a 
+            return {}
+            # that should get dictionary of values from sensors
+        # for finger in self.status.keys():
+        #     if finger == "emg":
+        #         continue
+        #     temp = self.status[finger]
+        #     self.status[finger][self._bend]["val"] = temp[self._bend]["conf"].get_value()
+        #     self.status[finger][self._pressure]["val"] = temp[self._pressure]["conf"].get_value()
             
-        self.status["emg"]["value"] = self.status["emg"]["conf"].get_value()
-        
-    def send(self):
-        self.uart_control.send_usb(self.__payload_mapper())
+        # self.status[self._emg]["val"] = self.status[self._emg]["conf"].get_value()
+        return read_wrapper
+    # waits for bluetooth proper handling
+    # def send(self):
+    #     self.uart_control.send_usb(self.__payload_mapper())        
     
-    def getEMG(self):
-        print(self.status["emg"]["value"])
+    @read
+    def __payload_mapper(self, sensors: Dict, order: set, separator: str = ";") -> List:
+        pass
     
-    def __payload_mapper(self):
-        return {
-            "fingers": {
-                "thumb": {
-                    "bend": self.status["fingers"]["thumb"]["bend"]["value"],
-                    "pressure": self.status["fingers"]["thumb"]["pressure"]["value"]
-                },
-                "index": {
-                    "bend": self.status["fingers"]["index"]["bend"]["value"],
-                    "pressure": self.status["fingers"]["index"]["pressure"]["value"]
-                },
-                "middle": {
-                    "bend": self.status["fingers"]["middle"]["bend"]["value"],
-                    "pressure": self.status["fingers"]["middle"]["pressure"]["value"]
-                },
-                "ring": {
-                    "bend": self.status["fingers"]["ring"]["bend"]["value"],
-                    "pressure": self.status["fingers"]["ring"]["pressure"]["value"]
-                },
-                "little": {
-                    "bend": self.status["fingers"]["little"]["bend"]["value"],
-                    "pressure": self.status["fingers"]["little"]["pressure"]["value"]
-                }
-            },
-                "emg": self.status["emg"]["value"]
-        }
-        
-                
+    def values(self, order: set, separator: str = ";") -> str:
+        return separator.join(self.__payload_mapper(self._sensors, order, separator))

@@ -27,3 +27,5 @@ pymakr.conf
 
 # results
 results/
+# config
+.vscode/

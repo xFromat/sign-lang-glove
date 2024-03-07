@@ -1,6 +1,7 @@
 from machine import Pin, ADC
+from sensor import Sensor
 
-class Res_sensor:
+class Res_sensor(Sensor):
     """
     Class for instances of resistance sensors
     ---
@@ -13,17 +14,18 @@ class Res_sensor:
     # 1.3V - 180 deg       |    >1V -> intentional touch 
     # 0.9V - 90 deg        |    
     # 0.5V - full          |
-    def __init__(self, pin_num: int, sensor_type: str, max_v: float = 3.3, adc_width: int = 8192):
+    def __init__(self, pin_num: int, max_v: float = 3.3, adc_width: int = 8192):
         self.port = ADC(Pin(pin_num))
         # attenuation allows to measure above reference voltage
         if max_v >= 3.3:
             self.port.atten(ADC.ATTN_11DB)
         self.max_v = max_v
-        self.adc_width = adc_width
-        self.sensort_type = sensor_type    
+        self.adc_width = adc_width        
+        self._value = -1
     
     def get_value(self) -> int:
-        return self.port.read()
+        self._value = self.port.read()
+        return self._value
     
     def get_volts(self) -> float:
         return self.get_value()*self.max_v/(self.adc_width-1)

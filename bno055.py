@@ -1,8 +1,10 @@
 #import narzedzi podstawowych
 import machine
 import time
-from machine import Pin,
+from machine import Pin
 from time import sleep
+
+from sensor import Sensor
 
 #definicja peryferiow
 accRegAdrr = b'\x08'	#LSB X, MSB X, LSB Y...		6B
@@ -20,7 +22,7 @@ def uint16_t(val):
 def int16_t(val):
     return ((val + 0x8000) & 0xFFFF) - 0x8000
 
-class c_bno055:
+class c_bno055(Sensor):
     def __init__(self,i2c):
         self.goodInit = False
         self.i2c = i2c
@@ -120,6 +122,21 @@ class c_bno055:
         self.readEuler()
         self.readQuaternions()
         self.readLinearAcc()
+
+    def get_value(self) -> dict:
+        self.measure()
+        return {
+            "acc": {
+                "x": self.linacceleX,
+                "y": self.linacceleY,
+                "z": self.linacceleZ
+            },
+            "euler": {
+                "x": self.orientEulX,
+                "y": self.orientEulY,
+                "z": self.orientEulZ
+            }
+        }
         
     def printAll(self):
         print(f"orientEulerX", self.orientEulX)

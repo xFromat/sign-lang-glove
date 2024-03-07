@@ -4,22 +4,32 @@ from glove import Glove
 from communication import Communication
 import bno055
 from machine import I2C, Pin
+from config import *
+from res_sensors import Res_sensor
+import pinyPBL
 
-# program
-# config
+
 # sampling frequency
 FS = 0.1 # Hz
 
-FINGERS = set(["thumb", "index", "middle", "ring", "little"])
-# pl: "kciuk", "wskazujacy", "srodkowy", "serdeczny", "maly"
-glove = Glove(["bend", "pressure"])
-uart_control = Communication()
+# build sensors sets
+sensors = {}
+sensor_names = list(Sensor_types.__args__)
+# bend & pressure
+sensors_pl = [sensor["pl"] for sensor in sensors_config.values()]
+for i in range (0, len(FINGERS)):
+    finger = list(FINGERS)[i]
+    sensors[finger][sensor_names[0]] = Res_sensor(getattr(pinyPBL, f'{sensors_pl[0]+str(i+1)}'))
+    sensors[finger][sensor_names[1]] = Res_sensor(getattr(pinyPBL, f'{sensors_pl[1]+str(i+1)}'))    
+# emg
+sensors["emg"] = Res_sensor(pinyPBL.pinEMG)
+# imu
+sensors["imu"] = bno055.c_bno055(I2C(0, scl=Pin(2), sda=Pin(1), freq=100000))
+# build glove object
+glove = Glove(sensors_config, FINGERS)
+# uart_control = Communication()
 
-i2c = I2C(0, scl=Pin(2), sda=Pin(1), freq=100000)
-# i2c = board.STEMMA_I2C()  # For using the built-in STEMMA QT connector on a microcontroller
-sensor = bno055.c_bno055(i2c)
-
-fileName = './Julia.txt'
+fileName = f'./Julia{ext}'
 
 # while True:
 t = 5
@@ -27,7 +37,7 @@ while t > 0:
     print(t)
     t-=1
     sleep(1)
-glove.get_readings()
+glove.read()
 sensor.measure()
 #     sensor.f.writeAll()
 # Open the file in append mode ('a')
@@ -41,6 +51,3 @@ with open(fileName, 'a') as f:
     f.write(f"LinearAccelerationY {sensor.linacceleY}\n")
     f.write(f"LinearAccelerationZ {sensor.linacceleZ}\n")
     f.write("#######################################################################################################\n")
-
-#     glove.getEMG()
-# sleep(1/FS)
