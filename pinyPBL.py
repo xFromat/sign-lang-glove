@@ -1,6 +1,6 @@
 #kciuk - palec1				Opis na plytce
-pinUgiecie1 = 4		#8
-pinNacisk1 = 8		#4
+pinUgiecie1 = 8		#8
+pinNacisk1 = 4		#4
 pinUgiecie2 = 11		#11
 pinNacisk2 = 6		#6
 pinUgiecie3 = 10		#10
@@ -11,4 +11,4 @@ pinUgiecie5 = 13		#13
 pinNacisk5 = 17		#A0
 
 #I2C = default config!
-pinEMG = 7			#A4
+pinEMG = 9			#A4

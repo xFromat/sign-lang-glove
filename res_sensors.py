@@ -23,9 +23,9 @@ class Res_sensor(Sensor):
         self.adc_width = adc_width        
         self._value = -1
     
-    def get_value(self) -> int:
+    def get_value(self) -> tuple[int, list]:
         self._value = self.port.read()
-        return self._value
+        return self._value, []
     
     def get_volts(self) -> float:
         return self.get_value()*self.max_v/(self.adc_width-1)

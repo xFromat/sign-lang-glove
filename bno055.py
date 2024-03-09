@@ -1,4 +1,4 @@
-#import narzedzi podstawowych
+# import narzedzi podstawowych
 import machine
 import time
 from machine import Pin
@@ -6,7 +6,7 @@ from time import sleep
 
 from sensor import Sensor
 
-#definicja peryferiow
+# definicja peryferiow
 accRegAdrr = b'\x08'	#LSB X, MSB X, LSB Y...		6B
 magRegAdrr = b'\x0E'	#LSB X, MSB X, LSB Y...		6B 
 gyrRegAdrr = b'\x14'	#LSB X, MSB X, LSB Y...		6B
@@ -51,32 +51,31 @@ class c_bno055(Sensor):
         self.accZ = 0
         self.temp = 0
         self.accTreshold = 10
-        
-        
-        #devList = self.i2c.scan()
-        #myDevAddres = b'\x29'	#41
-        #if myDevAddres in devList:   #cos mi nie dziala ten warunek
+
+        # devList = self.i2c.scan()
+        # myDevAddres = b'\x29'	#41
+        # if myDevAddres in devList:   #cos mi nie dziala ten warunek
         if True:
             bn0config = bytearray(2)     # create a buffer with 10 bytes
             bn0config[0] = 0x3D
             bn0config[1] = 0x0C
             self.i2c.writeto(self.adr, bn0config)
-            #zmiana jednostek
+            # zmiana jednostek
             bn0config[0] = 0x3B
             bn0config[1] = 0x00
             self.i2c.writeto(self.adr, bn0config)
             self.goodInit = True
         else:
             self.goodInit = False
-            
+
     def readTemp(self):
-        #wybieranie adresu w pamieci urzadzenia
+        # wybieranie adresu w pamieci urzadzenia
         self.i2c.writeto(self.adr, tempDatRegAdrr)
-        #odczyt z pamieci urzadzenia
+        # odczyt z pamieci urzadzenia
         temp = self.i2c.readfrom(self.adr, 1)
-        #temperatura zawyzona o jakies 3 stopnie celcjusza
+        # temperatura zawyzona o jakies 3 stopnie celcjusza
         self.temp = (int(temp[0])) - 3
-        #print(f"Temperatura", self.temp)
+        # print(f"Temperatura", self.temp)
 
     def readEuler(self):
         self.i2c.writeto(self.adr, eulersRegAdrr)
@@ -84,10 +83,10 @@ class c_bno055(Sensor):
         self.orientEulX = int16_t(data[0] | (data[1] << 8))
         self.orientEulY = int16_t(data[2] | (data[3] << 8))
         self.orientEulZ = int16_t(data[4] | (data[5] << 8))
-        #print(f"orientEulerX", self.orientEulX)
-        #print(f"orientEulerY", self.orientEulY)
-        #print(f"orientEulerZ", self.orientEulZ)
-        
+        # print(f"orientEulerX", self.orientEulX)
+        # print(f"orientEulerY", self.orientEulY)
+        # print(f"orientEulerZ", self.orientEulZ)
+
     def readQuaternions(self):
         self.i2c.writeto(self.adr, quaternionsRegAdrr)
         data = self.i2c.readfrom(self.adr, 8)
@@ -95,49 +94,56 @@ class c_bno055(Sensor):
         self.orientQuatX = int16_t(data[2] | (data[3] << 8))
         self.orientQuatY = int16_t(data[4] | (data[5] << 8))
         self.orientQuatZ = int16_t(data[6] | (data[7] << 8))
-        #print(f"orientQuaternionsX", self.orientQuatX)
-        #print(f"orientQuaternionsY", self.orientQuatY)
-        #print(f"orientQuaternionsZ", self.orientQuatZ)
-        #print(f"orientQuaternionsW", self.orientQuatW)
+        # print(f"orientQuaternionsX", self.orientQuatX)
+        # print(f"orientQuaternionsY", self.orientQuatY)
+        # print(f"orientQuaternionsZ", self.orientQuatZ)
+        # print(f"orientQuaternionsW", self.orientQuatW)
 
     def readLinearAcc(self):
         self.i2c.writeto(self.adr, linacRegAdrr)
         data = self.i2c.readfrom(self.adr, 6)
-        #dane raw
+        # dane raw
         self.linacceleX = int16_t(data[0] + (data[1] << 8))
         self.linacceleY = int16_t(data[2] + (data[3] << 8))
         self.linacceleZ = int16_t(data[4] + (data[5] << 8))
-        #filtrowanie szumu tresholdem (aby lezacy czujnik poakzywal 0)
+        # filtrowanie szumu tresholdem (aby lezacy czujnik poakzywal 0)
         if (self.linacceleX < self.accTreshold) and (self.linacceleX > - self.accTreshold):
             self.linacceleX = 0
         if (self.linacceleY < self.accTreshold) and (self.linacceleY > - self.accTreshold):
             self.linacceleY = 0
         if (self.linacceleZ < self.accTreshold) and (self.linacceleZ > - self.accTreshold):
             self.linacceleZ = 0
-        #print(f"LinearAccelerationX", self.linacceleX)
-        #print(f"LinearAccelerationY", self.linacceleY)
-        #print(f"LinearAccelerationZ", self.linacceleZ)
-        
+        # print(f"LinearAccelerationX", self.linacceleX)
+        # print(f"LinearAccelerationY", self.linacceleY)
+        # print(f"LinearAccelerationZ", self.linacceleZ)
+
     def measure(self):
         self.readEuler()
         self.readQuaternions()
         self.readLinearAcc()
 
-    def get_value(self) -> dict:
+    def get_value(
+        self,
+        order: list | tuple = [
+            "orientEulX",
+            "orientEulY",
+            "orientEulZ",
+            "orientQuatX",
+            "orientQuatY",
+            "orientQuatZ",
+            "orientQuatW",
+            "linacceleX",
+            "linacceleY",
+            "linaccelerZ",
+        ],
+    ) -> tuple[int | float | str | list, list]:
         self.measure()
-        return {
-            "acc": {
-                "x": self.linacceleX,
-                "y": self.linacceleY,
-                "z": self.linacceleZ
-            },
-            "euler": {
-                "x": self.orientEulX,
-                "y": self.orientEulY,
-                "z": self.orientEulZ
-            }
-        }
-        
+        values = []
+        for item in order:
+            if hasattr(self, item):
+                values.append(getattr(self, item))
+        return values, order
+
     def printAll(self):
         print(f"orientEulerX", self.orientEulX)
         print(f"orientEulerY", self.orientEulY)
@@ -152,25 +158,22 @@ class c_bno055(Sensor):
 ####### End class ################
 
 
+# i2c = I2C(0, scl=Pin(22), sda=Pin(21), freq=100000)
 
-#i2c = I2C(0, scl=Pin(22), sda=Pin(21), freq=100000) 
-    
 ############# petla glowna programu ###################
-#bnoSens = c_bno055(i2c)
-#if bnoSens.goodInit is True:
-    #machine.sleep(100)
-    #bnoSens.readTemp()
-    #bnoSens.readEuler()
-    #bnoSens.readQuaternions()
-    #bnoSens.readLinearAcc()
-    
-#else:
-    #del bnoSens
+# bnoSens = c_bno055(i2c)
+# if bnoSens.goodInit is True:
+# machine.sleep(100)
+# bnoSens.readTemp()
+# bnoSens.readEuler()
+# bnoSens.readQuaternions()
+# bnoSens.readLinearAcc()
+
+# else:
+# del bnoSens
 
 
-#while True:
-    #bnoSens.readLinearAcc()
-    
-    #machine.sleep(200)
-    
-   
+# while True:
+# bnoSens.readLinearAcc()
+
+# machine.sleep(200)
