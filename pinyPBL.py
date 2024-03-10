@@ -7,7 +7,7 @@ pinUgiecie3 = 10		#10
 pinNacisk3 = 14		#A2
 pinUgiecie4 = 12		#12
 pinNacisk4 = 18		#A1
-pinUgiecie5 = 13		#13
+pinUgiecie5 = 7		#13
 pinNacisk5 = 17		#A0
 
 #I2C = default config!

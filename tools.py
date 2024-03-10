@@ -1,3 +1,5 @@
+from time import sleep
+
 def list_flatterner(func):
     def flatterner_wrapper(values: list, sep: str) -> list:  # type: ignore
         """Flatten the list of values to a list of strings"""
@@ -17,10 +19,18 @@ def values_wrapper(values: list, separator: str = ";") -> str:
     return separator.join(values)
 
 
-
-def sort_dict(dictionary: dict, order: list = []) -> dict:
-    sorted_keys = sorted([key for key in dictionary if any(key.endswith(pattern) for pattern in order)], key=lambda x: [order.index(pattern) if x.endswith(pattern) else len(order) for pattern in order])
-    return {key: dictionary[key] for key in sorted_keys}
+@mkhashmap
+def sort_dict(dictionary: dict, order: list) -> dict:
+    order_sorted = order.copy()
+    order_sorted.sort()
+    dictionary_keys = list(dictionary.keys())
+    sorted_dict = {}
+    while order_sorted:
+        key = order.index(order_sorted.pop(0))    
+        sorted_dict[dictionary_keys[key]] = dictionary[dictionary_keys[key]]
+        order.pop(key)
+        dictionary_keys.pop(key)
+    return sorted_dict
 
 def flatten_dict(given: dict):
     new_dict = {}
@@ -34,3 +44,22 @@ def flatten_dict(given: dict):
             new_dict[f'{key}.{k}'] = v
         
     return new_dict
+
+def signalize_recording(led, status: list) -> None:
+    while status[0]:        
+        if status[1] > 0:
+            led.value(not led.value())
+            sleep(status[1])
+        else:
+            led.value(1)
+    led.value(0)
+    
+def mkhashmap(func):
+    def hashmapwrapper(dictionary: dict, order: list = []):
+        order_numbers = list(range(len(order)))
+        hashed = []
+        for index, value in enumerate(order):
+            keys = [key for key in dictionary.keys() if key.endswith(value)]
+            hashed.extend([index]*len(keys))
+        return func(dictionary, hashed)
+    return hashmapwrapper

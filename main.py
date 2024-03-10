@@ -3,13 +3,14 @@ import os
 from time import sleep, ticks_ms
 
 from machine import I2C, Pin
+import _thread as th
 
 import bno055
 import config
 import pinyPBL
 from glove import Glove
 from res_sensors import Res_sensor
-from tools import values_wrapper
+from tools import values_wrapper, signalize_recording
 
 # sampling frequency
 FS = 200 # Hz
@@ -35,27 +36,30 @@ glove = Glove(sensors)
 
 # I propose it is to be a name of the person who is testing the glove with path to the file at the beginning
 testSubject = "./Piotrek"
+signal_led = Pin(13, Pin.OUT)
 
-# while True:
 while True:
-    sign = input("Name of sign to record: ")
+    led_status = [True, 0.5] # is on + sleep time between blinking
+    th.start_new_thread(signalize_recording, (signal_led, led_status))
+    try:
+        sign = input("Name of sign to record: ")
+    except KeyboardInterrupt:
+        led_status[0] = False
+        break
     t_current = t
     # record sign
     filename = f"{testSubject}_{sign}{config.ext}"
-    # delete file if it exists
-#     if not os.path.exists("./tests/"):
-#           os.makedirs("./tests/")  # Create the directory if needed
-#     try:
-#         remove(filename)
-#     except Exception:
-#         pass    
-    print("Recording...")
-    
+    led_status[1] = 0.2    
+    print("Recording...")    
     try:
         with open(filename, "w") as file:
+            led_status[1] = 0
+            sleep(1)
+            if "jednozna" in filename.lower():
+                t_current = 1/FS                
             file.write(f"time;{glove.get_info()}\n")            
             while t_current > 0:
-                if int(t_current) == t_current:
+                if t_current > int(t_current)-1/FS and t_current < int(t_current)+1/FS:
                     print(f"{int(t_current)}s")
                 # get status
                 status = glove.get_status(order = sensor_names)
@@ -65,9 +69,12 @@ while True:
                 t_current -= 1/FS
     except Exception as e:
         print(f"Error occurred: {str(e)}")
+        led_status[0] = False
         break
         
-
+    
     print(f"Recording finished: {filename}")
+    led_status[0] = False
     # just waiter
     sleep(1)
+led_status[0] = False
