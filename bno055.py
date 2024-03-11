@@ -134,7 +134,7 @@ class c_bno055(Sensor):
             "orientQuatW",
             "linacceleX",
             "linacceleY",
-            "linaccelerZ",
+            "linacceleZ",
         ],
     ) -> tuple[int | float | str | list, list]:
         self.measure()
@@ -142,7 +142,7 @@ class c_bno055(Sensor):
         for item in order:
             if hasattr(self, item):
                 values.append(getattr(self, item))
-        return values, order
+        return values, [f"imu.{key}" for key in order]
 
     def printAll(self):
         print(f"orientEulerX", self.orientEulX)

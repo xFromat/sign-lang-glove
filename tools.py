@@ -17,17 +17,32 @@ def list_flatterner(func):
 @list_flatterner
 def values_wrapper(values: list, separator: str = ";") -> str:
     return separator.join(values)
-
+    
+def mkhashmap(func):
+    def hashmapwrapper(dictionary: dict, order: list = []):
+        order_numbers = list(range(len(order)))
+        dict_keys = list(dictionary.keys())
+        hashed = [-1]*len(dict_keys)        
+        for index, value in enumerate(order):
+            keys = [key for key in dict_keys if key.endswith(value)]            
+            for key in keys:
+                hashed[dict_keys.index(key)] = index
+        hashed = list(filter(lambda x: x > -1, hashed))        
+        return func(dictionary, hashed)
+    return hashmapwrapper
 
 @mkhashmap
 def sort_dict(dictionary: dict, order: list) -> dict:
     order_sorted = order.copy()
     order_sorted.sort()
-    dictionary_keys = list(dictionary.keys())
+    dictionary_keys = list(dictionary.keys())    
     sorted_dict = {}
+    sorted_dict["keys"] = []
+    sorted_dict["values"] = []
     while order_sorted:
         key = order.index(order_sorted.pop(0))    
-        sorted_dict[dictionary_keys[key]] = dictionary[dictionary_keys[key]]
+        sorted_dict["values"].append(dictionary[dictionary_keys[key]])
+        sorted_dict["keys"].append(dictionary_keys[key])
         order.pop(key)
         dictionary_keys.pop(key)
     return sorted_dict
@@ -53,13 +68,3 @@ def signalize_recording(led, status: list) -> None:
         else:
             led.value(1)
     led.value(0)
-    
-def mkhashmap(func):
-    def hashmapwrapper(dictionary: dict, order: list = []):
-        order_numbers = list(range(len(order)))
-        hashed = []
-        for index, value in enumerate(order):
-            keys = [key for key in dictionary.keys() if key.endswith(value)]
-            hashed.extend([index]*len(keys))
-        return func(dictionary, hashed)
-    return hashmapwrapper

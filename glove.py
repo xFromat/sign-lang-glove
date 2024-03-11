@@ -17,27 +17,20 @@ class Glove:
         self._sensors = sensors
 
     def get_status(
-        self, order: list = SENSOR_TYPES
+        self, order: list
     ) -> list:
-        """Get the value of the sensor"""
-        sensors = list(sort_dict(flatten_dict(self._sensors), order).values())
-        values = []
-        for sensor in sensors:
-            temp = sensor.get_value()
-            values.append(temp[0])
-        return values
-    
-    def get_info(self, order: list = SENSOR_TYPES) -> list:
-        main_sensors: dict = sort_dict(flatten_dict(self._sensors), order)
-        results: list = []
-        for key, value in main_sensors.items():
-            info = value.get_value()
-            info = info[1]
-            curr = key
-            if len(info) > 0:
-                curr = []
-                for label in info:
-                    curr.append(f'{key}.{label}')
-            results.append(curr)
-        return values_wrapper(results, separator)
+        """Get the value of the sensor"""        
+        objs = sort_dict(flatten_dict(self._sensors), order)
         
+        return [obj.get_value()[0] for obj in objs["values"]]
+        
+    def get_info(self, order: list) -> dict:
+         sorted_dict = sort_dict(flatten_dict(self._sensors), order)         
+         names = []
+         for key, val in enumerate(sorted_dict["values"]):
+             temp = val.get_value()[1]
+             if not temp:
+                 temp = [sorted_dict["keys"][key]]
+             names.extend(temp)
+             
+         return values_wrapper(names, ";")

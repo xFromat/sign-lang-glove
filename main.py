@@ -56,14 +56,14 @@ while True:
             led_status[1] = 0
             sleep(1)
             if "jednozna" in filename.lower():
-                t_current = 1/FS                
-            file.write(f"time;{glove.get_info()}\n")            
+                t_current = 1/FS            
+            file.write(f"time{config.separator}{glove.get_info(sensor_names)}\n")            
             while t_current > 0:
                 if t_current > int(t_current)-1/FS and t_current < int(t_current)+1/FS:
                     print(f"{int(t_current)}s")
                 # get status
-                status = glove.get_status(order = sensor_names)
-                values = values_wrapper(status, config.separator)
+                status = glove.get_status(sensor_names)
+                values = values_wrapper(status, config.separator)                
                 file.write(f"{ticks_ms()};{values}\n")
                 sleep(1 / FS)
                 t_current -= 1/FS
